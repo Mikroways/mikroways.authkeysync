@@ -5,7 +5,8 @@ para mantener el `authorized_keys` de un usuario sincronizado automáticamente
 desde una o más fuentes remotas de claves públicas, sin re-ejecutar el playbook
 ante altas o bajas.
 
-Reemplaza la gestión manual de claves del rol `mw-user` (deprecado).
+Reemplaza la gestión manual de claves del rol
+[`mw-user`](https://github.com/Mikroways/mw-user) (deprecado).
 
 ## Alcance
 
