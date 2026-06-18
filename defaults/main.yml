@@ -1,8 +1,10 @@
 # defaults/main.yml
 ---
-# Versión de AuthKeySync a instalar. "latest" baja la última release publicada;
-# para fijar una versión usar el tag de la release (ej. "v0.1.1").
-authkeysync_version: latest
+# Versión de AuthKeySync a instalar. Fijada para reproducibilidad y para que
+# Renovate la mantenga al día (ver renovate.json5). Usar "latest" para seguir
+# siempre la última release.
+# renovate: datasource=github-releases depName=eduardolat/authkeysync
+authkeysync_version: v0.1.1
 # Arquitectura del binario (amd64 | arm64).
 authkeysync_arch: amd64
 authkeysync_download_url: >-

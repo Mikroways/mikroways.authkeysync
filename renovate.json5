@@ -1,0 +1,36 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    ':semanticCommits',
+    ':dependencyDashboard',
+  ],
+  timezone: 'America/Argentina/Buenos_Aires',
+  schedule: ['before 6am on monday'],
+  prHourlyLimit: 4,
+  prConcurrentLimit: 10,
+  labels: ['dependencies', 'renovate'],
+
+  // Maneja dependencias de Python (pyproject.toml / uv.lock) y las GitHub
+  // Actions del workflow de molecule de forma nativa.
+
+  customManagers: [
+    // Versión del binario de AuthKeySync fijada en defaults/main.yml.
+    {
+      customType: 'regex',
+      fileMatch: ['^defaults/main\\.yml$'],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+authkeysync_version:\\s*["\']?(?<currentValue>[^"\'\\s]+)',
+      ],
+    },
+  ],
+
+  packageRules: [
+    // Política: NUNCA automerge. Todo PR pasa por revisión humana.
+    // Los majors se etiquetan como candidatos a revisión cuidadosa.
+    {
+      matchUpdateTypes: ['major'],
+      addLabels: ['major-update'],
+    },
+  ],
+}
