@@ -1,0 +1,32 @@
+---
+# Ejemplo de uso del rol mikroways.authkeysync.
+#
+# Muestra cómo dejar a un recurso (un bastión o cualquier servidor) con las
+# claves SSH del equipo de Mikroways sincronizándose solas, SIN instalar el rol
+# mikroways.workstation: en este recurso solo nos interesan las claves.
+#
+# El rol NO usa become: se conecta con el usuario que nos dieron y sincroniza
+# el authorized_keys de ese usuario. Crear el usuario es un paso previo
+# (por ejemplo, cloud-init inyecta una clave inicial y luego se corre esto).
+
+- name: Sincronizar claves del equipo de Mikroways
+  hosts: all
+  become: false
+  gather_facts: true
+  roles:
+    - role: mikroways.authkeysync
+
+# Variante: un recurso que además autoriza las claves de los usuarios del
+# cliente, publicadas en otra URL. Se agrega una segunda fuente. Esto puede ir
+# en group_vars/host_vars en lugar de inline.
+#
+# - name: Sincronizar claves del equipo + claves del cliente
+#   hosts: recursos_cliente
+#   become: false
+#   gather_facts: true
+#   roles:
+#     - role: mikroways.authkeysync
+#       vars:
+#         authkeysync_sources:
+#           - url: "{{ authkeysync_mikroways_keys_url }}"
+#           - url: "https://claves-del-cliente.example/equipo.pub"
