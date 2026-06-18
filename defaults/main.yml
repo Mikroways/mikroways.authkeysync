@@ -1,0 +1,47 @@
+# defaults/main.yml
+---
+# Versión de AuthKeySync a instalar. "latest" baja la última release publicada;
+# para fijar una versión usar el tag de la release (ej. "v0.1.1").
+authkeysync_version: latest
+# Arquitectura del binario (amd64 | arm64).
+authkeysync_arch: amd64
+authkeysync_download_url: >-
+  https://github.com/eduardolat/authkeysync/releases/{{
+  'latest/download' if authkeysync_version == 'latest'
+  else 'download/' + authkeysync_version }}/authkeysync-linux-{{ authkeysync_arch }}
+
+# Instalación a nivel de USUARIO: el rol NO usa become. Se instala en el HOME
+# del usuario con el que corre el rol y sincroniza el authorized_keys de ese
+# mismo usuario. Crear el usuario es un paso previo (cloud-init, etc.).
+authkeysync_bin_dir: "{{ ansible_env.HOME }}/.local/bin"
+authkeysync_bin_path: "{{ authkeysync_bin_dir }}/authkeysync"
+authkeysync_config_dir: "{{ ansible_env.HOME }}/.config/authkeysync"
+authkeysync_config_path: "{{ authkeysync_config_dir }}/config.yaml"
+
+# Política de sincronización.
+authkeysync_backup_enabled: true
+authkeysync_backup_retention_count: 10
+# IMPORTANTE: estricto por diseño. Con preserve_local_keys=false el
+# authorized_keys queda EXACTAMENTE igual a la fuente: las claves que ya no
+# estén en la fuente (ej. una persona que dejó Mikroways) se eliminan.
+# AuthKeySync no usa marcadores: en modo estricto cualquier clave local que no
+# esté en una fuente se borra. Asegurar que la fuente contenga toda clave
+# legítima o tener un camino de acceso alternativo (consola/Teleport, o la
+# clave inicial inyectada por cloud-init publicada en la fuente). Backups
+# quedan activos.
+authkeysync_preserve_local_keys: false
+
+# Frecuencia del cron de sincronización (crontab del propio usuario).
+authkeysync_cron_minute: "*/5"
+# Correr una sincronización inicial al aplicar el rol.
+authkeysync_run_initial_sync: true
+
+# Fuente de claves del personal de Mikroways (repo público de claves).
+authkeysync_mikroways_keys_url: "https://mikroways.gitlab.io/public/ssh_keys/_all.pub"
+
+# Usuario destino: por defecto, el usuario con el que corre el rol.
+authkeysync_username: "{{ ansible_user_id }}"
+# Fuentes de claves a sincronizar para ese usuario. AuthKeySync admite varias
+# (ej. claves del equipo + claves propias del cliente desde otra URL).
+authkeysync_sources:
+  - url: "{{ authkeysync_mikroways_keys_url }}"

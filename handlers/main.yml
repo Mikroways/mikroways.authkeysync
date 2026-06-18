@@ -1,0 +1,5 @@
+# handlers/main.yml
+---
+- name: Run AuthKeySync sync
+  ansible.builtin.command: "{{ authkeysync_bin_path }} --config {{ authkeysync_config_path }} --quiet"
+  changed_when: false

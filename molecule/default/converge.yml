@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: Include mikroways.authkeysync
+      ansible.builtin.include_role:
+        name: mikroways.authkeysync

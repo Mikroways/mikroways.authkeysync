@@ -1,0 +1,36 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  become: false
+  vars:
+    authkeysync_bin_path: "{{ ansible_env.HOME }}/.local/bin/authkeysync"
+    authkeysync_config_path: "{{ ansible_env.HOME }}/.config/authkeysync/config.yaml"
+  tasks:
+    - name: Verify AuthKeySync binary is installed and executable
+      ansible.builtin.command: "{{ authkeysync_bin_path }} --version"
+      changed_when: false
+
+    - name: Verify configuration file exists
+      ansible.builtin.stat:
+        path: "{{ authkeysync_config_path }}"
+      register: config_stat
+      failed_when: not config_stat.stat.exists
+
+    - name: Verify cron job is registered for the current user
+      ansible.builtin.command: "crontab -l"
+      register: user_crontab
+      changed_when: false
+      failed_when: "'AuthKeySync' not in user_crontab.stdout"
+
+    - name: Verify authorized_keys exists for the synced user
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+      register: ak_stat
+      failed_when: not ak_stat.stat.exists
+
+    - name: Verify authorized_keys is not empty
+      ansible.builtin.command: "grep -c . {{ ansible_env.HOME }}/.ssh/authorized_keys"
+      register: ak_count
+      changed_when: false
+      failed_when: ak_count.rc != 0 or ak_count.stdout | int == 0

@@ -1,0 +1,30 @@
+galaxy_info:
+  author: Mikroways
+  description: Instala y configura AuthKeySync para sincronizar authorized_keys desde fuentes remotas
+  company: Mikroways
+  role_name: authkeysync # if absent directory name hosting role is used instead
+  namespace: mikroways
+
+  license: GPL-2.0-or-later
+
+  min_ansible_version: "2.19"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+  galaxy_tags:
+    - ssh
+    - authorized_keys
+    - keys
+    - mikroways
+    - authkeysync
+
+dependencies: []

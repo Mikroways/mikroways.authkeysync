@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+policy:
+  backup_enabled: {{ authkeysync_backup_enabled | bool | string | lower }}
+  backup_retention_count: {{ authkeysync_backup_retention_count }}
+  preserve_local_keys: {{ authkeysync_preserve_local_keys | bool | string | lower }}
+users:
+  - username: "{{ authkeysync_username }}"
+    sources:
+{% for source in authkeysync_sources %}
+      - url: "{{ source.url }}"
+{% if source.method is defined %}
+        method: "{{ source.method }}"
+{% endif %}
+{% if source.timeout_seconds is defined %}
+        timeout_seconds: {{ source.timeout_seconds }}
+{% endif %}
+{% endfor %}

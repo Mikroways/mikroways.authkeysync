@@ -1,0 +1,45 @@
+# tasks/main.yml
+---
+# Rol sin become: todo se instala a nivel del usuario que corre el rol.
+- name: Ensure local bin directory exists
+  ansible.builtin.file:
+    path: "{{ authkeysync_bin_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download AuthKeySync binary
+  ansible.builtin.get_url:
+    url: "{{ authkeysync_download_url }}"
+    dest: "{{ authkeysync_bin_path }}"
+    mode: "0755"
+
+- name: Ensure configuration directory exists
+  ansible.builtin.file:
+    path: "{{ authkeysync_config_dir }}"
+    state: directory
+    mode: "0755"
+
+# AuthKeySync omite al usuario si su ~/.ssh no existe (no lo crea él mismo).
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Deploy AuthKeySync configuration
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ authkeysync_config_path }}"
+    mode: "0644"
+  notify: Run AuthKeySync sync
+
+- name: Schedule AuthKeySync cron job
+  ansible.builtin.cron:
+    name: AuthKeySync
+    minute: "{{ authkeysync_cron_minute }}"
+    job: "{{ authkeysync_bin_path }} --config {{ authkeysync_config_path }} --quiet"
+
+- name: Run initial AuthKeySync sync
+  ansible.builtin.command: "{{ authkeysync_bin_path }} --config {{ authkeysync_config_path }} --quiet"
+  changed_when: false
+  when: authkeysync_run_initial_sync | bool
