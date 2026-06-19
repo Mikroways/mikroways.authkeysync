@@ -34,3 +34,62 @@
       register: ak_count
       changed_when: false
       failed_when: ak_count.rc != 0 or ak_count.stdout | int == 0
+
+    - name: Verify .ssh directory and authorized_keys permissions
+      block:
+        - name: Stat .ssh directory
+          ansible.builtin.stat:
+            path: "{{ ansible_env.HOME }}/.ssh"
+          register: ssh_dir
+        - name: Assert .ssh is 0700
+          ansible.builtin.assert:
+            that: ssh_dir.stat.mode == '0700'
+            fail_msg: ".ssh should be 0700, got {{ ssh_dir.stat.mode }}"
+        - name: Stat authorized_keys
+          ansible.builtin.stat:
+            path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+          register: ak_file
+        - name: Assert authorized_keys is 0600
+          ansible.builtin.assert:
+            that: ak_file.stat.mode == '0600'
+            fail_msg: "authorized_keys should be 0600, got {{ ak_file.stat.mode }}"
+
+    - name: Verify rendered config (strict mode and target user)
+      block:
+        - name: Read config
+          ansible.builtin.slurp:
+            src: "{{ authkeysync_config_path }}"
+          register: rendered_config
+        - name: Assert config is in strict mode (preserve_local_keys false)
+          ansible.builtin.assert:
+            that: "'preserve_local_keys: false' in (rendered_config.content | b64decode)"
+            fail_msg: "config is not in strict mode"
+        - name: Assert config targets the synced user
+          ansible.builtin.assert:
+            that: "('username: \"' ~ ansible_user_id ~ '\"') in (rendered_config.content | b64decode)"
+            fail_msg: "config does not target user {{ ansible_user_id }}"
+
+    - name: Verify strict mode removes keys absent from the source
+      block:
+        - name: Snapshot authorized_keys line count (source baseline)
+          ansible.builtin.command: "grep -c . {{ ansible_env.HOME }}/.ssh/authorized_keys"
+          register: baseline_count
+          changed_when: false
+        - name: Inject an intruder key not present in any source
+          ansible.builtin.lineinfile:
+            path: "{{ ansible_env.HOME }}/.ssh/authorized_keys"
+            line: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIINTRUDERKEYFORTESTING intruder@test"
+            state: present
+        - name: Run a sync after injecting the intruder
+          ansible.builtin.command: "{{ authkeysync_bin_path }} --config {{ authkeysync_config_path }} --quiet"
+          changed_when: false
+        - name: Assert the intruder key was removed
+          ansible.builtin.command: "grep -c 'intruder@test' {{ ansible_env.HOME }}/.ssh/authorized_keys"
+          register: intruder_after
+          changed_when: false
+          failed_when: intruder_after.rc == 0
+        - name: Assert authorized_keys returned to the source baseline
+          ansible.builtin.command: "grep -c . {{ ansible_env.HOME }}/.ssh/authorized_keys"
+          register: final_count
+          changed_when: false
+          failed_when: final_count.stdout | int != baseline_count.stdout | int
