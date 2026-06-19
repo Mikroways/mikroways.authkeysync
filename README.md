@@ -54,7 +54,7 @@ Mikroways y su clave se quita del repositorio de claves, también se elimina del
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
-| `authkeysync_version` | `latest` | Versión a instalar (`latest` o tag de release, ej. `v0.1.1`). |
+| `authkeysync_version` | `v0.1.1` | Versión del binario a instalar (un tag de release, ej. `v0.1.1`, o `latest`). |
 | `authkeysync_arch` | `amd64` | Arquitectura del binario (`amd64` \| `arm64`). |
 | `authkeysync_bin_dir` | `~/.local/bin` | Directorio del binario. |
 | `authkeysync_config_dir` | `~/.config/authkeysync` | Directorio de configuración. |
@@ -87,7 +87,7 @@ roles:
   - name: mikroways.authkeysync
     src: git@github.com:Mikroways/mikroways.authkeysync.git
     scm: git
-    version: main
+    version: "0.1.0"
 ```
 
 Playbook:
