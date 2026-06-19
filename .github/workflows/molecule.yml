@@ -13,12 +13,12 @@ jobs:
       # Se hace checkout dentro de un directorio con el nombre del rol para que
       # `include_role: name: mikroways.authkeysync` resuelva vía roles_path (..).
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: mikroways.authkeysync
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Sync dependencies
         working-directory: mikroways.authkeysync
