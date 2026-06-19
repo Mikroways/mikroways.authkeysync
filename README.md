@@ -87,7 +87,7 @@ roles:
   - name: mikroways.authkeysync
     src: git@github.com:Mikroways/mikroways.authkeysync.git
     scm: git
-    version: "0.1.0"
+    version: main
 ```
 
 Playbook (sin `become`):
@@ -101,14 +101,26 @@ Playbook (sin `become`):
     - role: mikroways.authkeysync
 ```
 
+En [`examples/`](examples/) hay un ejemplo completo (playbook + inventario +
+`requirements.yml`) y, en [`examples/vagrant/`](examples/vagrant/), un entorno
+de prueba con Vagrant para aplicar el rol sobre una VM real con un `vagrant up`.
+
 ## Desarrollo
+
+El entorno (Ansible, molecule) se gestiona con [uv](https://docs.astral.sh/uv/)
+y se activa solo con [direnv](https://direnv.net/):
+
+```bash
+direnv allow   # crea el venv con uv (si falta) y lo activa al entrar al repo
+```
+
+Sin direnv, el equivalente es `uv sync` y prefijar los comandos con `uv run`.
 
 Las pruebas usan [molecule](https://molecule.readthedocs.io/) con Docker:
 
 ```bash
-uv sync                    # instala las dependencias
-uv run molecule converge   # crea los contenedores y aplica el rol
-uv run molecule verify     # verifica que el rol hizo lo esperado
-uv run molecule destroy    # destruye los contenedores
-uv run molecule test       # ciclo completo
+molecule converge   # crea los contenedores y aplica el rol
+molecule verify     # verifica que el rol hizo lo esperado
+molecule destroy    # destruye los contenedores
+molecule test       # ciclo completo
 ```

@@ -1,0 +1,15 @@
+---
+# Prueba del rol mikroways.authkeysync sobre una VM de Vagrant.
+# Aplica el rol al usuario 'vagrant' (sin become): instala AuthKeySync y
+# sincroniza su authorized_keys con las claves del equipo de Mikroways.
+- name: Probar mikroways.authkeysync
+  hosts: all
+  become: false
+  gather_facts: true
+  roles:
+    - role: mikroways.authkeysync
+      vars:
+        # En la VM de prueba preservamos las claves locales para NO borrar la
+        # clave que Vagrant usa para conectarse (no está en la fuente) y quedar
+        # afuera de la VM. En un bastión real esto va en false (modo estricto).
+        authkeysync_preserve_local_keys: true
