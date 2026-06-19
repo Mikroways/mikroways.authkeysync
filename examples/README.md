@@ -23,7 +23,12 @@ ansible-playbook -i inventory.ini playbook.yml
 ## Probar en una VM con Vagrant
 
 El subdirectorio [`vagrant/`](vagrant/) levanta una VM Ubuntu (box
-`ubuntu/jammy64`) y le aplica el rol, sin tocar ningún servidor real:
+`ubuntu/jammy64`) y le aplica el rol, sin tocar ningún servidor real.
+
+> A diferencia del uso de arriba (que instala el rol publicado desde un tag),
+> esta prueba usa el **código local** del repo: `vagrant/roles/mikroways.authkeysync`
+> es un symlink al rol, así probás tus cambios sin publicar una versión. Por eso
+> ese symlink está versionado (no se gitignorea).
 
 ```bash
 cd vagrant
