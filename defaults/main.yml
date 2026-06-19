@@ -1,49 +1,48 @@
 # defaults/main.yml
 ---
-# Versión de AuthKeySync a instalar. Fijada para reproducibilidad y para que
-# Renovate la mantenga al día (ver renovate.json5). Usar "latest" para seguir
-# siempre la última release.
+# AuthKeySync version to install. Pinned for reproducibility and so Renovate
+# keeps it up to date (see renovate.json5). Use "latest" to always follow the
+# newest release.
 # renovate: datasource=github-releases depName=eduardolat/authkeysync
 authkeysync_version: v0.1.1
-# Arquitectura del binario (amd64 | arm64).
+# Binary architecture (amd64 | arm64).
 authkeysync_arch: amd64
 authkeysync_download_url: >-
   https://github.com/eduardolat/authkeysync/releases/{{
   'latest/download' if authkeysync_version == 'latest'
   else 'download/' + authkeysync_version }}/authkeysync-linux-{{ authkeysync_arch }}
 
-# Instalación a nivel de USUARIO: el rol NO usa become. Se instala en el HOME
-# del usuario con el que corre el rol y sincroniza el authorized_keys de ese
-# mismo usuario. Crear el usuario es un paso previo (cloud-init, etc.).
+# User-level install: the role does NOT use become. It installs under the HOME
+# of the user running the role and syncs that same user's authorized_keys.
+# Creating the user is a previous step (cloud-init, etc.).
 authkeysync_bin_dir: "{{ ansible_env.HOME }}/.local/bin"
 authkeysync_bin_path: "{{ authkeysync_bin_dir }}/authkeysync"
 authkeysync_config_dir: "{{ ansible_env.HOME }}/.config/authkeysync"
 authkeysync_config_path: "{{ authkeysync_config_dir }}/config.yaml"
 
-# Política de sincronización.
+# Sync policy.
 authkeysync_backup_enabled: true
 authkeysync_backup_retention_count: 10
-# IMPORTANTE: estricto por diseño. Con preserve_local_keys=false el
-# authorized_keys queda EXACTAMENTE igual a la fuente: las claves que ya no
-# estén en la fuente (ej. una persona que dejó Mikroways) se eliminan.
-# AuthKeySync no usa marcadores: en modo estricto cualquier clave local que no
-# esté en una fuente se borra. Asegurar que la fuente contenga toda clave
-# legítima o tener un camino de acceso alternativo (consola/Teleport, o la
-# clave inicial inyectada por cloud-init publicada en la fuente). Backups
-# quedan activos.
+# IMPORTANT: strict by design. With preserve_local_keys=false the
+# authorized_keys file stays EXACTLY equal to the source: keys no longer present
+# in the source (e.g. someone who left Mikroways) are removed.
+# AuthKeySync uses no markers: in strict mode any local key not in a source is
+# deleted. Make sure the source contains every legitimate key, or have an
+# alternative access path (console/Teleport, or the initial key injected by
+# cloud-init also published in the source). Backups stay enabled.
 authkeysync_preserve_local_keys: false
 
-# Frecuencia del cron de sincronización (crontab del propio usuario).
+# Sync cron frequency (the user's own crontab).
 authkeysync_cron_minute: "*/5"
-# Correr una sincronización inicial al aplicar el rol.
+# Run an initial sync when applying the role.
 authkeysync_run_initial_sync: true
 
-# Fuente de claves del personal de Mikroways (repo público de claves).
+# Mikroways team keys source (public keys repo).
 authkeysync_mikroways_keys_url: "https://mikroways.gitlab.io/public/ssh_keys/_all.pub"
 
-# Usuario destino: por defecto, el usuario con el que corre el rol.
+# Target user: by default, the user running the role.
 authkeysync_username: "{{ ansible_user_id }}"
-# Fuentes de claves a sincronizar para ese usuario. AuthKeySync admite varias
-# (ej. claves del equipo + claves propias del cliente desde otra URL).
+# Key sources to sync for that user. AuthKeySync supports several
+# (e.g. team keys + the client's own keys from another URL).
 authkeysync_sources:
   - url: "{{ authkeysync_mikroways_keys_url }}"

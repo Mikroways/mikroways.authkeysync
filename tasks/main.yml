@@ -1,6 +1,6 @@
 # tasks/main.yml
 ---
-# Rol sin become: todo se instala a nivel del usuario que corre el rol.
+# No become: everything is installed under the home of the user running the role.
 - name: Ensure local bin directory exists
   ansible.builtin.file:
     path: "{{ authkeysync_bin_dir }}"
@@ -19,7 +19,7 @@
     state: directory
     mode: "0755"
 
-# AuthKeySync omite al usuario si su ~/.ssh no existe (no lo crea él mismo).
+# AuthKeySync skips the user if their ~/.ssh does not exist (it does not create it).
 - name: Ensure .ssh directory exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.ssh"

@@ -2,7 +2,7 @@
 # Prueba del rol mikroways.authkeysync sobre una VM de Vagrant.
 # Aplica el rol al usuario 'vagrant' (sin become): instala AuthKeySync y
 # sincroniza su authorized_keys con las claves del equipo de Mikroways.
-- name: Probar mikroways.authkeysync
+- name: Test mikroways.authkeysync
   hosts: all
   become: false
   gather_facts: true

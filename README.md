@@ -90,7 +90,7 @@ roles:
     version: main
 ```
 
-Playbook (sin `become`):
+Playbook:
 
 ```yaml
 - name: Sincronizar claves del equipo en el bastión
@@ -103,7 +103,8 @@ Playbook (sin `become`):
 
 En [`examples/`](examples/) hay un ejemplo completo (playbook + inventario +
 `requirements.yml`) y, en [`examples/vagrant/`](examples/vagrant/), un entorno
-de prueba con Vagrant para aplicar el rol sobre una VM real con un `vagrant up`.
+de prueba con Vagrant para aplicar el rol sobre una VM real.
+Ver `examples/README.md` para detalles.
 
 ## Desarrollo
 

@@ -1,6 +1,6 @@
 galaxy_info:
   author: Mikroways
-  description: Instala y configura AuthKeySync para sincronizar authorized_keys desde fuentes remotas
+  description: Install and configure AuthKeySync to sync a user's authorized_keys from remote sources
   company: Mikroways
   role_name: authkeysync # if absent directory name hosting role is used instead
   namespace: mikroways

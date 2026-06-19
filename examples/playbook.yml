@@ -9,7 +9,7 @@
 # el authorized_keys de ese usuario. Crear el usuario es un paso previo
 # (por ejemplo, cloud-init inyecta una clave inicial y luego se corre esto).
 
-- name: Sincronizar claves del equipo de Mikroways
+- name: Sync the Mikroways team keys
   hosts: all
   become: false
   gather_facts: true
@@ -20,8 +20,8 @@
 # cliente, publicadas en otra URL. Se agrega una segunda fuente. Esto puede ir
 # en group_vars/host_vars en lugar de inline.
 #
-# - name: Sincronizar claves del equipo + claves del cliente
-#   hosts: recursos_cliente
+# - name: Sync team keys + client keys
+#   hosts: client_resources
 #   become: false
 #   gather_facts: true
 #   roles:
@@ -29,4 +29,4 @@
 #       vars:
 #         authkeysync_sources:
 #           - url: "{{ authkeysync_mikroways_keys_url }}"
-#           - url: "https://claves-del-cliente.example/equipo.pub"
+#           - url: "https://client-keys.example/team.pub"

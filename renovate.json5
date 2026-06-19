@@ -11,11 +11,11 @@
   prConcurrentLimit: 10,
   labels: ['dependencies', 'renovate'],
 
-  // Maneja dependencias de Python (pyproject.toml / uv.lock) y las GitHub
-  // Actions del workflow de molecule de forma nativa.
+  // Manages Python dependencies (pyproject.toml / uv.lock) and the GitHub
+  // Actions of the molecule workflow natively.
 
   customManagers: [
-    // Versión del binario de AuthKeySync fijada en defaults/main.yml.
+    // AuthKeySync binary version pinned in defaults/main.yml.
     {
       customType: 'regex',
       fileMatch: ['^defaults/main\\.yml$'],
@@ -26,8 +26,8 @@
   ],
 
   packageRules: [
-    // Política: NUNCA automerge. Todo PR pasa por revisión humana.
-    // Los majors se etiquetan como candidatos a revisión cuidadosa.
+    // Policy: NEVER automerge. Every PR goes through human review.
+    // Majors are labeled as candidates for careful review.
     {
       matchUpdateTypes: ['major'],
       addLabels: ['major-update'],

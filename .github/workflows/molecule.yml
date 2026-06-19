@@ -10,8 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      # Se hace checkout dentro de un directorio con el nombre del rol para que
-      # `include_role: name: mikroways.authkeysync` resuelva vía roles_path (..).
+      # Checkout into a directory named after the role so that
+      # `include_role: name: mikroways.authkeysync` resolves via roles_path (..).
       - name: Checkout
         uses: actions/checkout@v7
         with:
