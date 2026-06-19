@@ -75,8 +75,8 @@ authkeysync_sources:
   - url: "https://claves-del-cliente.example/equipo.pub"
 ```
 
-Cada fuente admite además `method` y `timeout_seconds` (ver la documentación de
-AuthKeySync).
+Cada fuente admite además `method` y `timeout_seconds` (ver la
+[documentación de AuthKeySync](https://eduardolat.github.io/authkeysync/configuration/)).
 
 ## Ejemplo
 
@@ -104,7 +104,7 @@ Playbook:
 En [`examples/`](examples/) hay un ejemplo completo (playbook + inventario +
 `requirements.yml`) y, en [`examples/vagrant/`](examples/vagrant/), un entorno
 de prueba con Vagrant para aplicar el rol sobre una VM real.
-Ver `examples/README.md` para detalles.
+Ver [`examples/README.md`](examples/README.md) para detalles.
 
 ## Desarrollo
 

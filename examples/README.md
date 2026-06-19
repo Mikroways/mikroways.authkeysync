@@ -22,8 +22,10 @@ ansible-playbook -i inventory.ini playbook.yml
 
 ## Probar en una VM con Vagrant
 
-El subdirectorio [`vagrant/`](vagrant/) levanta una VM Ubuntu (box
-`ubuntu/jammy64`) y le aplica el rol, sin tocar ningún servidor real.
+Requiere Vagrant + VirtualBox y que `ansible-playbook` esté en el PATH (lo
+provee el `direnv allow` del repo). El subdirectorio [`vagrant/`](vagrant/)
+levanta una VM Ubuntu (box `ubuntu/jammy64`) y le aplica el rol, sin tocar
+ningún servidor real.
 
 > A diferencia del uso de arriba (que instala el rol publicado desde un tag),
 > esta prueba usa el **código local** del repo: `vagrant/roles/mikroways.authkeysync`
@@ -55,11 +57,11 @@ cat ~/.ssh/authorized_keys
 ~/.local/bin/authkeysync --config ~/.config/authkeysync/config.yaml
 ```
 
-Para ver el modo estricto en acción (el rol borra claves que no están en la
-fuente), agregar una clave de prueba y volver a sincronizar: desaparece.
-Ojo que en este ejemplo se usa `preserve_local_keys: true`, así que **no** se
-borra; cambiá esa variable a `false` en `playbook.yml` y reprovisioná
-(`vagrant provision`) para probar el borrado.
+En la VM se usa `preserve_local_keys: true` para no borrar la clave con la que
+Vagrant se conecta (en un bastión real va en `false`, modo estricto). Para ver
+el borrado en acción, poné esa variable en `false` en `playbook.yml`, agregá una
+clave de prueba al `authorized_keys` y reprovisioná (`vagrant provision`): en la
+sincronización desaparece.
 
 Salir de la VM y borrarla al terminar:
 
@@ -67,11 +69,6 @@ Salir de la VM y borrarla al terminar:
 exit
 vagrant destroy -f
 ```
-
-Requiere Vagrant + VirtualBox y que `ansible-playbook` esté en el PATH (lo
-provee el `direnv allow` del repo). En la VM de prueba se usa
-`preserve_local_keys: true` para no borrar la clave con la que Vagrant se
-conecta; en un bastión real va en `false` (modo estricto).
 
 ### Alternativa: probar contra el rol publicado (galaxy)
 
@@ -86,12 +83,3 @@ En ese modo Vagrant ejecuta `ansible-galaxy install` desde `../requirements.yml`
 (pinneado al tag `0.1.0`), instala el rol en `.galaxy-roles/` (gitignoreado) y
 provisiona con esa versión en lugar del código local. Requiere que el tag exista
 en GitHub y acceso SSH al repo.
-
-## Archivos
-
-| Archivo | Propósito |
-|---------|-----------|
-| `playbook.yml` | Aplica `mikroways.authkeysync` (incluye variante con claves del cliente) |
-| `inventory.ini` | Inventario de ejemplo (bastiones y recursos) |
-| `requirements.yml` | Declara el rol para `ansible-galaxy install` |
-| `vagrant/` | Entorno de prueba con Vagrant (VM Ubuntu + provisión del rol) |
