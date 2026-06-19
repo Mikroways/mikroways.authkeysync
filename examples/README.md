@@ -73,6 +73,20 @@ provee el `direnv allow` del repo). En la VM de prueba se usa
 `preserve_local_keys: true` para no borrar la clave con la que Vagrant se
 conecta; en un bastión real va en `false` (modo estricto).
 
+### Alternativa: probar contra el rol publicado (galaxy)
+
+Por defecto la prueba usa el código local (symlink). Para verificar lo que
+recibe un consumidor —el rol publicado en el tag— correr con `FROM_GALAXY=1`:
+
+```bash
+FROM_GALAXY=1 vagrant up
+```
+
+En ese modo Vagrant ejecuta `ansible-galaxy install` desde `../requirements.yml`
+(pinneado al tag `0.1.0`), instala el rol en `.galaxy-roles/` (gitignoreado) y
+provisiona con esa versión en lugar del código local. Requiere que el tag exista
+en GitHub y acceso SSH al repo.
+
 ## Archivos
 
 | Archivo | Propósito |
