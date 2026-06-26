@@ -22,7 +22,7 @@
 # AuthKeySync skips the user if their ~/.ssh does not exist (it does not create it).
 - name: Ensure .ssh directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.ssh"
+    path: "{{ authkeysync_ssh_dir }}"
     state: directory
     mode: "0700"
 

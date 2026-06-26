@@ -16,6 +16,7 @@ authkeysync_download_url: >-
 # of the user running the role and syncs that same user's authorized_keys.
 # Creating the user is a previous step (cloud-init, etc.).
 authkeysync_bin_dir: "{{ ansible_env.HOME }}/.local/bin"
+authkeysync_ssh_dir: "{{ ansible_env.HOME }}/.ssh"
 authkeysync_bin_path: "{{ authkeysync_bin_dir }}/authkeysync"
 authkeysync_config_dir: "{{ ansible_env.HOME }}/.config/authkeysync"
 authkeysync_config_path: "{{ authkeysync_config_dir }}/config.yaml"
