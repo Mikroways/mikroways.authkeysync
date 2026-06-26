@@ -14,16 +14,10 @@ Este rol **solo pone y mantiene claves** en el usuario con el que corre. No crea
 usuarios: crear la cuenta es un paso previo (por ejemplo, cloud-init inyecta una
 clave inicial y luego se corre este rol).
 
-**El rol no usa `become`.** Se instala a nivel del usuario:
-
-- binario en `~/.local/bin/authkeysync`
-- configuración en `~/.config/authkeysync/config.yaml`
-- un cron en el crontab del propio usuario, cada 5 minutos
-- sincroniza el `~/.ssh/authorized_keys` de ese usuario
-
-Por eso no importa con qué usuario se ejecute: sincroniza las claves de ese
-usuario. Para sincronizar varios usuarios en un host, se aplica el rol una vez
-por usuario (cada quien con su conexión).
+**El rol no usa `become`.** Se conecta directamente como el usuario destino, por
+lo que no importa con qué usuario corre: siempre instala en su HOME. Para
+sincronizar varios usuarios en un host, se aplica el rol una vez por usuario
+(cada quien con su conexión).
 
 ## Cómo funciona
 
@@ -63,6 +57,7 @@ Mikroways y su clave se quita del repositorio de claves, también se elimina del
 | `authkeysync_preserve_local_keys` | `false` | `false` = estricto (elimina claves ausentes en la fuente). |
 | `authkeysync_cron_minute` | `*/5` | Frecuencia del cron de sincronización. |
 | `authkeysync_run_initial_sync` | `true` | Correr una sincronización inicial al aplicar el rol. |
+| `authkeysync_ssh_dir` | `~/.ssh` | Directorio SSH del usuario. Útil cuando se corre con `become: true` y el HOME resuelve a `/root/.ssh`. |
 | `authkeysync_mikroways_keys_url` | `https://mikroways.gitlab.io/public/ssh_keys/_all.pub` | Fuente de claves del equipo de Mikroways. |
 | `authkeysync_username` | usuario que corre el rol | Usuario destino del `authorized_keys`. |
 | `authkeysync_sources` | claves del equipo Mikroways | Lista de fuentes de claves a sincronizar. |
@@ -87,7 +82,7 @@ roles:
   - name: mikroways.authkeysync
     src: git@github.com:Mikroways/mikroways.authkeysync.git
     scm: git
-    version: "0.1.0"
+    version: "0.1.1"
 ```
 
 Playbook:
@@ -105,6 +100,99 @@ En [`examples/`](examples/) hay un ejemplo completo (playbook + inventario +
 `requirements.yml`) y, en [`examples/vagrant/`](examples/vagrant/), un entorno
 de prueba con Vagrant para aplicar el rol sobre una VM real.
 Ver [`examples/README.md`](examples/README.md) para detalles.
+
+## Migración desde mw-user
+
+`mw-user` creaba el usuario `mikroways`, configuraba sudo sin contraseña y
+sincronizaba las claves del equipo, todo en un solo rol con `become: true`.
+`mikroways.authkeysync` hace **solo** la sincronización de claves: la creación
+del usuario y la configuración de sudo son responsabilidad del llamador
+(cloud-init, Terraform, otro rol).
+
+### requirements.yml
+
+Antes:
+
+```yaml
+roles:
+  - role: mikroways.mw_user
+```
+
+Ahora:
+
+```yaml
+roles:
+  - name: mikroways.authkeysync
+    src: git@github.com:Mikroways/mikroways.authkeysync.git
+    scm: git
+    version: "0.1.1"
+```
+
+### Playbook
+
+Si ya tenés acceso SSH como el usuario al que querés sincronizar claves
+(p.ej. un bastión donde conectás como `mikroways`), el rol corre sin `become`
+y resuelve todos los paths desde el HOME del usuario de conexión:
+
+```yaml
+- name: Sincronizar claves
+  hosts: all
+  become: false
+  gather_facts: true
+  roles:
+    - role: mikroways.authkeysync
+```
+
+Cuando hay que crear el usuario primero (equivalente directo de `mw-user`),
+se conecta como un usuario con privilegios, se crean el usuario y el sudoers
+con tasks explícitas, y luego se aplica el rol con `become_user`. En este caso
+`ansible_env.HOME` resuelve al home del usuario privilegiado, por lo que hay
+que indicar los paths explícitamente:
+
+```yaml
+- name: Crear usuario y sincronizar claves
+  hosts: all
+  gather_facts: true
+  vars:
+    mw_user_name: mikroways
+  tasks:
+    - name: Crear usuario
+      ansible.builtin.user:
+        name: "{{ mw_user_name }}"
+        shell: /bin/bash
+        state: present
+      become: true
+
+    - name: Configurar sudo sin contraseña
+      ansible.builtin.copy:
+        content: "{{ mw_user_name }} ALL=(ALL) NOPASSWD:ALL\n"
+        dest: "/etc/sudoers.d/{{ mw_user_name }}"
+        mode: "0440"
+        validate: visudo -cf %s
+      become: true
+
+    - name: Sincronizar claves SSH
+      ansible.builtin.include_role:
+        name: mikroways.authkeysync
+      become: true
+      become_user: "{{ mw_user_name }}"
+      vars:
+        authkeysync_bin_dir: "/home/{{ mw_user_name }}/.local/bin"
+        authkeysync_config_dir: "/home/{{ mw_user_name }}/.config/authkeysync"
+        authkeysync_ssh_dir: "/home/{{ mw_user_name }}/.ssh"
+        authkeysync_username: "{{ mw_user_name }}"
+        authkeysync_preserve_local_keys: true
+```
+
+### Variables equivalentes
+
+| mw-user | mikroways.authkeysync |
+|---------|----------------------|
+| `mw_user_keys_url` | `authkeysync_mikroways_keys_url` |
+| `mw_user_customer_users[].keys_url` | `authkeysync_sources` (lista de URLs) |
+
+La variable `authkeysync_preserve_local_keys: true` es el equivalente al
+comportamiento anterior donde las claves locales preexistentes no se tocaban.
 
 ## Desarrollo
 
