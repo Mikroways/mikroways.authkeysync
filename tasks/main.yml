@@ -12,6 +12,10 @@
     url: "{{ authkeysync_download_url }}"
     dest: "{{ authkeysync_bin_path }}"
     mode: "0755"
+  environment:
+    http_proxy: "{{ authkeysync_http_proxy }}"
+    https_proxy: "{{ authkeysync_https_proxy }}"
+    no_proxy: "{{ authkeysync_no_proxy }}"
 
 - name: Ensure configuration directory exists
   ansible.builtin.file:
@@ -33,6 +37,27 @@
     mode: "0644"
   notify: Run AuthKeySync sync
 
+- name: Set http_proxy for cron
+  ansible.builtin.cron:
+    name: http_proxy
+    env: true
+    value: "{{ authkeysync_http_proxy }}"
+    state: "{{ 'present' if authkeysync_http_proxy else 'absent' }}"
+
+- name: Set https_proxy for cron
+  ansible.builtin.cron:
+    name: https_proxy
+    env: true
+    value: "{{ authkeysync_https_proxy }}"
+    state: "{{ 'present' if authkeysync_https_proxy else 'absent' }}"
+
+- name: Set no_proxy for cron
+  ansible.builtin.cron:
+    name: no_proxy
+    env: true
+    value: "{{ authkeysync_no_proxy }}"
+    state: "{{ 'present' if authkeysync_no_proxy else 'absent' }}"
+
 - name: Schedule AuthKeySync cron job
   ansible.builtin.cron:
     name: AuthKeySync
@@ -42,4 +67,8 @@
 - name: Run initial AuthKeySync sync
   ansible.builtin.command: "{{ authkeysync_bin_path }} --config {{ authkeysync_config_path }} --quiet"
   changed_when: false
+  environment:
+    http_proxy: "{{ authkeysync_http_proxy }}"
+    https_proxy: "{{ authkeysync_https_proxy }}"
+    no_proxy: "{{ authkeysync_no_proxy }}"
   when: authkeysync_run_initial_sync | bool

@@ -1,0 +1,34 @@
+---
+- name: Install tinyproxy
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install tinyproxy
+      ansible.builtin.apt:
+        name: tinyproxy
+        state: present
+        update_cache: true
+
+    - name: Allow connections from localhost
+      ansible.builtin.lineinfile:
+        path: /etc/tinyproxy/tinyproxy.conf
+        regexp: '^#?Allow '
+        line: "Allow 127.0.0.1"
+
+    - name: Start tinyproxy
+      ansible.builtin.service:
+        name: tinyproxy
+        state: started
+        enabled: true
+
+- name: Test mikroways.authkeysync con proxy
+  hosts: all
+  become: false
+  gather_facts: true
+  roles:
+    - role: mikroways.authkeysync
+      vars:
+        authkeysync_preserve_local_keys: true
+        authkeysync_http_proxy: "http://127.0.0.1:8888"
+        authkeysync_https_proxy: "http://127.0.0.1:8888"

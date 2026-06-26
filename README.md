@@ -57,10 +57,17 @@ Mikroways y su clave se quita del repositorio de claves, también se elimina del
 | `authkeysync_preserve_local_keys` | `false` | `false` = estricto (elimina claves ausentes en la fuente). |
 | `authkeysync_cron_minute` | `*/5` | Frecuencia del cron de sincronización. |
 | `authkeysync_run_initial_sync` | `true` | Correr una sincronización inicial al aplicar el rol. |
+| `authkeysync_http_proxy` | `""` | Proxy HTTP para descargar el binario y para el cron de sincronización. Vacío = sin proxy. |
+| `authkeysync_https_proxy` | `""` | Proxy HTTPS ídem. |
+| `authkeysync_no_proxy` | `""` | Lista de hosts excluidos del proxy (ej. `localhost,10.0.0.0/8`). |
 | `authkeysync_ssh_dir` | `~/.ssh` | Directorio SSH del usuario. Útil cuando se corre con `become: true` y el HOME resuelve a `/root/.ssh`. |
 | `authkeysync_mikroways_keys_url` | `https://mikroways.gitlab.io/public/ssh_keys/_all.pub` | Fuente de claves del equipo de Mikroways. |
 | `authkeysync_username` | usuario que corre el rol | Usuario destino del `authorized_keys`. |
 | `authkeysync_sources` | claves del equipo Mikroways | Lista de fuentes de claves a sincronizar. |
+
+Las variables de proxy cubren dos momentos: la descarga del binario durante el
+`ansible-playbook` y las sincronizaciones del cron en runtime (las variables
+quedan inyectadas en el crontab del usuario).
 
 ### Estructura de `authkeysync_sources`
 
@@ -211,5 +218,12 @@ Las pruebas usan [molecule](https://molecule.readthedocs.io/) con Docker:
 molecule converge   # crea los contenedores y aplica el rol
 molecule verify     # verifica que el rol hizo lo esperado
 molecule destroy    # destruye los contenedores
-molecule test       # ciclo completo
+molecule test       # ciclo completo (escenario default)
+molecule test -s proxy  # ciclo completo con tinyproxy
+```
+
+Para probar sobre una VM real con Vagrant (requiere VirtualBox):
+
+```bash
+bash examples/vagrant/test-proxy.sh   # prueba con proxy (tinyproxy)
 ```

@@ -1,0 +1,16 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: authkeysync-proxy
+    image: ubuntu:24.04
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        ansible_user: ansible
+verifier:
+  name: ansible

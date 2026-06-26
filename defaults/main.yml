@@ -33,6 +33,11 @@ authkeysync_backup_retention_count: 10
 # cloud-init also published in the source). Backups stay enabled.
 authkeysync_preserve_local_keys: false
 
+# Proxy for downloading the binary and for the cron sync. Leave empty for no proxy.
+authkeysync_http_proxy: ""
+authkeysync_https_proxy: ""
+authkeysync_no_proxy: ""
+
 # Sync cron frequency (the user's own crontab).
 authkeysync_cron_minute: "*/5"
 # Run an initial sync when applying the role.
