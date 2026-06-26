@@ -1,0 +1,20 @@
+---
+name: 🌌 Galaxy import
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  import:
+    name: 🚀 Galaxy Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: galaxy
+        uses: robertdebock/galaxy-action@1.2.0
+        with:
+          git_branch: main
+          galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}
