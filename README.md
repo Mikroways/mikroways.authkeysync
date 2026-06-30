@@ -87,9 +87,7 @@ Cada fuente admite además `method` y `timeout_seconds` (ver la
 ```yaml
 roles:
   - name: mikroways.authkeysync
-    src: git@github.com:Mikroways/mikroways.authkeysync.git
-    scm: git
-    version: "0.1.1"
+    version: "0.2.1"
 ```
 
 Playbook:
@@ -130,9 +128,7 @@ Ahora:
 ```yaml
 roles:
   - name: mikroways.authkeysync
-    src: git@github.com:Mikroways/mikroways.authkeysync.git
-    scm: git
-    version: "0.1.1"
+    version: "0.2.1"
 ```
 
 ### Playbook
@@ -222,8 +218,3 @@ molecule test       # ciclo completo (escenario default)
 molecule test -s proxy  # ciclo completo con tinyproxy
 ```
 
-Para probar sobre una VM real con Vagrant (requiere VirtualBox):
-
-```bash
-bash examples/vagrant/test-proxy.sh   # prueba con proxy (tinyproxy)
-```

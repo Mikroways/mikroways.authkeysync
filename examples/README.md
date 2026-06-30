@@ -6,10 +6,6 @@ más recursos (bastiones o cualquier servidor), usando solo el rol
 de conexión a clientes (que además aplica `mikroways.teleport` y
 `mikroways.workstation`), acá **solo se instalan y mantienen las claves**.
 
-El rol **no usa `become`**: se conecta con el usuario indicado en el inventario
-y sincroniza el `authorized_keys` de ese usuario. Crear la cuenta es un paso
-previo (cloud-init, Terraform, etc.).
-
 ## Uso
 
 ```bash
@@ -70,6 +66,18 @@ exit
 vagrant destroy -f
 ```
 
+### Probar el escenario con proxy
+
+Para verificar que el rol funciona correctamente detrás de un proxy HTTP, hay un
+script que levanta la VM, elimina el binario instalado para forzar la descarga
+a través del proxy, y valida el resultado:
+
+```bash
+bash examples/vagrant/test-proxy.sh
+```
+
+Requiere que la VM ya esté corriendo (`vagrant up`) y que `uv` esté disponible.
+
 ### Alternativa: probar contra el rol publicado (galaxy)
 
 Por defecto la prueba usa el código local (symlink). Para verificar lo que
@@ -80,6 +88,11 @@ FROM_GALAXY=1 vagrant up
 ```
 
 En ese modo Vagrant ejecuta `ansible-galaxy install` desde `../requirements.yml`
-(pinneado al tag `0.1.0`), instala el rol en `.galaxy-roles/` (gitignoreado) y
-provisiona con esa versión en lugar del código local. Requiere que el tag exista
-en GitHub y acceso SSH al repo.
+(pinneado a la versión `0.2.1`), instala el rol en `.galaxy-roles/` (gitignoreado) y
+provisiona con esa versión en lugar del código local. Requiere acceso a Ansible Galaxy.
+
+> **Nota:** al provisionar, Vagrant pasa `--inventory-file` a `ansible-playbook` en lugar del
+> flag actual `-i`. Esto genera un `[DEPRECATION WARNING]` que es inofensivo en las versiones
+> actuales de ansible-core, pero se romperá en ansible-core 2.23. Es un bug de Vagrant
+> ([vagrant/vagrant#13502](https://github.com/hashicorp/vagrant/issues/13502)) que requiere
+> una actualización del provisioner de Vagrant para resolverse.

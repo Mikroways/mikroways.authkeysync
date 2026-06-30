@@ -1,6 +1,4 @@
 ---
 roles:
   - name: mikroways.authkeysync
-    src: git@github.com:Mikroways/mikroways.authkeysync.git
-    scm: git
-    version: "0.1.0"
+    version: "0.2.1"
