@@ -73,7 +73,7 @@ script que levanta la VM, elimina el binario instalado para forzar la descarga
 a través del proxy, y valida el resultado:
 
 ```bash
-bash examples/vagrant/test-proxy.sh
+./test-proxy.sh
 ```
 
 Requiere que la VM ya esté corriendo (`vagrant up`) y que `uv` esté disponible.
