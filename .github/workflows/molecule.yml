@@ -39,4 +39,4 @@ jobs:
         working-directory: mikroways.authkeysync
         env:
           ANSIBLE_ROLES_PATH: ${{ github.workspace }}
-        run: uv run molecule test
+        run: uv run molecule test --all
