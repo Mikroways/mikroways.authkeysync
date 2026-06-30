@@ -15,10 +15,10 @@ authkeysync_download_url: >-
 # User-level install: the role does NOT use become. It installs under the HOME
 # of the user running the role and syncs that same user's authorized_keys.
 # Creating the user is a previous step (cloud-init, etc.).
-authkeysync_bin_dir: "{{ ansible_env.HOME }}/.local/bin"
-authkeysync_ssh_dir: "{{ ansible_env.HOME }}/.ssh"
+authkeysync_bin_dir: "{{ ansible_facts['env']['HOME'] }}/.local/bin"
+authkeysync_ssh_dir: "{{ ansible_facts['env']['HOME'] }}/.ssh"
 authkeysync_bin_path: "{{ authkeysync_bin_dir }}/authkeysync"
-authkeysync_config_dir: "{{ ansible_env.HOME }}/.config/authkeysync"
+authkeysync_config_dir: "{{ ansible_facts['env']['HOME'] }}/.config/authkeysync"
 authkeysync_config_path: "{{ authkeysync_config_dir }}/config.yaml"
 
 # Sync policy.
@@ -47,7 +47,7 @@ authkeysync_run_initial_sync: true
 authkeysync_mikroways_keys_url: "https://mikroways.gitlab.io/public/ssh_keys/_all.pub"
 
 # Target user: by default, the user running the role.
-authkeysync_username: "{{ ansible_user_id }}"
+authkeysync_username: "{{ ansible_facts['user_id'] }}"
 # Key sources to sync for that user. AuthKeySync supports several
 # (e.g. team keys + the client's own keys from another URL).
 authkeysync_sources:
