@@ -76,7 +76,7 @@ a través del proxy, y valida el resultado:
 ./test-proxy.sh
 ```
 
-Requiere que la VM ya esté corriendo (`vagrant up`) y que `uv` esté disponible.
+El script levanta la VM si no está corriendo. Requiere `uv` disponible en el PATH.
 
 ### Alternativa: probar contra el rol publicado (galaxy)
 

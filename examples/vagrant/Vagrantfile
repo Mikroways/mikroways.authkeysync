@@ -4,7 +4,7 @@
 # Por defecto el rol se resuelve desde el CÓDIGO LOCAL vía el symlink roles/
 # (ver ansible.cfg). Alternativa: instalar el rol PUBLICADO desde el tag con
 #   FROM_GALAXY=1 vagrant up
-# Eso requiere que el tag exista en GitHub y acceso SSH al repo. La instalación
+# Eso requiere que la versión exista publicada en Ansible Galaxy. La instalación
 # de galaxy va a .galaxy-roles/ (gitignoreado) y ANSIBLE_ROLES_PATH apunta ahí,
 # así no se usa el symlink local.
 # Sin la variable (default) => "0" => false => symlink. Solo con FROM_GALAXY=1 => galaxy.
