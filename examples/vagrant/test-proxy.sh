@@ -11,7 +11,10 @@ vagrant up
 
 VAGRANT_PORT=$(vagrant ssh-config | grep '  Port ' | awk '{print $2}')
 VAGRANT_KEY=$(vagrant ssh-config | grep IdentityFile | awk '{print $2}')
-SSH="ssh -i $VAGRANT_KEY -p $VAGRANT_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR vagrant@127.0.0.1"
+KNOWN_HOSTS=$(mktemp)
+ssh-keyscan -p "$VAGRANT_PORT" 127.0.0.1 2>/dev/null > "$KNOWN_HOSTS"
+trap "rm -f $KNOWN_HOSTS" EXIT
+SSH="ssh -i $VAGRANT_KEY -p $VAGRANT_PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$KNOWN_HOSTS vagrant@127.0.0.1"
 
 echo "=== Eliminando binario previo para forzar descarga por proxy ==="
 $SSH "rm -f ~/.local/bin/authkeysync"
