@@ -21,6 +21,7 @@ lint: |
 scenario:
   test_sequence:
     - destroy
+    - lint
     - syntax
     - create
     - converge
