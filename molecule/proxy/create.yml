@@ -98,7 +98,13 @@
 
     - name: Create docker network(s)
       ansible.builtin.include_tasks: tasks/create_network.yml
-      with_items: "{{ molecule_yml.platforms | molecule_get_docker_networks(molecule_labels) }}"
+      with_items: >-
+        {{ molecule_yml.platforms
+           | selectattr('networks', 'defined')
+           | map(attribute='networks')
+           | flatten
+           | unique(attribute='name')
+           | list }}
       loop_control:
         label: "{{ item.name }}"
       no_log: false
