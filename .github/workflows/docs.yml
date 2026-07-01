@@ -1,0 +1,17 @@
+---
+name: docs
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    uses: Mikroways/mw-docs-quality/.github/workflows/lint.yml@main
