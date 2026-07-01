@@ -22,7 +22,7 @@ galaxy_info:
 
   galaxy_tags:
     - ssh
-    - authorized_keys
+    - authorizedkeys
     - keys
     - mikroways
     - authkeysync
