@@ -217,4 +217,3 @@ molecule destroy    # destruye los contenedores
 molecule test       # ciclo completo (escenario default)
 molecule test -s proxy  # ciclo completo con tinyproxy
 ```
-

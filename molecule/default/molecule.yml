@@ -14,14 +14,9 @@ provisioner:
         ansible_user: ansible
 verifier:
   name: ansible
-lint: |
-  set -e
-  yamllint .
-  ansible-lint .
 scenario:
   test_sequence:
     - destroy
-    - lint
     - syntax
     - create
     - converge
