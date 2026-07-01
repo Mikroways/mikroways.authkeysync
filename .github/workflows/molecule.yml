@@ -35,6 +35,12 @@ jobs:
         working-directory: mikroways.authkeysync
         run: uv sync
 
+      - name: Lint
+        working-directory: mikroways.authkeysync
+        run: |
+          uv run yamllint .
+          uv run ansible-lint .
+
       - name: Molecule test
         working-directory: mikroways.authkeysync
         env:
