@@ -16,8 +16,8 @@ agregar `vulnerability_alerts: read`).
 Actualizar `requirements.yml` para usar formato Galaxy (sin `src`/`scm`):
 
 - ~~`mw-grant-ssh-access`~~ ✓ (actualizado a 0.2.1, tag 3.1.0)
-- `harbor-ansible-role` (Banco Columbia) ← en curso
-- skeleton de `mw-create-project`
+- ~~`harbor-ansible-role`~~ ✓ (Banco Columbia, actualizado a 0.2.1)
+- ~~skeleton de `mw-create-project`~~ ✓ (actualizado a 0.2.1, ansible 14)
 
 ## molecule-plugins bug
 
