@@ -1,0 +1,11 @@
+globs:
+  - "**/*.md"
+ignores:
+  - "node_modules/**"
+  - ".venv/**"
+  - ".vagrant/**"
+  - "examples/vagrant/roles/**"
+  - "examples/vagrant/.galaxy-roles/**"
+  - "molecule/*/roles/**"
+config:
+  extends: ./node_modules/@mikroways/docs-quality/markdownlint.json

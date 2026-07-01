@@ -2,3 +2,4 @@
 molecule/default/roles/
 .vagrant/
 examples/vagrant/.galaxy-roles/
+node_modules/

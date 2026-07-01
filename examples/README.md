@@ -56,7 +56,7 @@ cat ~/.ssh/authorized_keys
 En la VM se usa `preserve_local_keys: true` para no borrar la clave con la que
 Vagrant se conecta (en un bastión real va en `false`, modo estricto). Para ver
 el borrado en acción, poné esa variable en `false` en `playbook.yml`, agregá una
-clave de prueba al `authorized_keys` y reprovisioná (`vagrant provision`): en la
+clave de prueba al `authorized_keys` y reaprovisioná (`vagrant provision`): en la
 sincronización desaparece.
 
 Salir de la VM y borrarla al terminar:
