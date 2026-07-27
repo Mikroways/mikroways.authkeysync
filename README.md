@@ -208,6 +208,24 @@ direnv allow   # crea el venv con uv (si falta) y lo activa al entrar al repo
 
 Sin direnv, el equivalente es `uv sync` y prefijar los comandos con `uv run`.
 
+### Lint de documentación
+
+El lint de markdown (markdownlint + cspell) se gestiona con npm:
+
+```bash
+npm install       # instala las dependencias y activa el hook de pre-commit
+npm run lint:docs # corre lo mismo que el job `docs` de CI
+```
+
+`npm install` configura `core.hooksPath` apuntando a `.githooks/`, que instala
+un hook de pre-commit: si el commit toca archivos `.md`, corre markdownlint y
+cspell antes de dejarlo pasar. Es el mismo par de checks que el job `docs`, así
+que un error de markdown se detecta en local en vez de romper el pipeline de
+`main` (que al fallar bloquea también todos los PRs abiertos).
+
+Para saltear el hook en un commit puntual: `git commit --no-verify`. CI valida
+igual, así que el error va a aparecer en el PR.
+
 Las pruebas usan [molecule](https://molecule.readthedocs.io/) con Docker:
 
 ```bash
