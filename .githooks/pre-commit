@@ -1,0 +1,37 @@
+#!/bin/sh
+# Hook versionado: se activa solo via `core.hooksPath` (lo configura el script
+# `prepare` de package.json al correr `npm install`).
+#
+# Replica el job `docs` de CI (Mikroways/mw-docs-quality lint.yml): markdownlint
+# + cspell. Evita commitear markdown roto que despues falla en main y, por
+# arrastre, bloquea todos los PRs abiertos.
+
+# Solo corre si hay archivos .md staged.
+staged_md=$(git diff --cached --name-only --diff-filter=ACM -- '*.md')
+[ -z "$staged_md" ] && exit 0
+
+# node_modules ausente = el lint no puede correr. Fallar ruidosamente en vez de
+# dejar pasar el commit sin validar: asi entro el error que rompio main.
+if [ ! -d node_modules/@mikroways/docs-quality ]; then
+  echo "pre-commit: falta node_modules/@mikroways/docs-quality" >&2
+  echo "pre-commit: corre \`npm install\` antes de commitear markdown." >&2
+  exit 1
+fi
+
+fail=0
+
+echo "pre-commit: markdownlint..."
+npx --no-install markdownlint-cli2 || fail=1
+
+echo "pre-commit: cspell..."
+npx --no-install cspell "**/*.md" || fail=1
+
+if [ "$fail" -ne 0 ]; then
+  echo >&2
+  echo "pre-commit: el lint de docs fallo." >&2
+  echo "pre-commit: arregla lo de arriba, o saltea con \`git commit --no-verify\`" >&2
+  echo "pre-commit: si sabes lo que estas haciendo (CI lo va a validar igual)." >&2
+  exit 1
+fi
+
+exit 0
