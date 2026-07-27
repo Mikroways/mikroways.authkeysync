@@ -1,5 +1,9 @@
 {
   "private": true,
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
+    "lint:docs": "markdownlint-cli2 && cspell \"**/*.md\""
+  },
   "devDependencies": {
     "@mikroways/docs-quality": "*",
     "markdownlint-cli2": "^0.23.0"
