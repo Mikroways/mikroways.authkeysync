@@ -6,7 +6,7 @@ El Dependency Dashboard muestra:
 
 > ⚠️ WARN: Cannot access vulnerability alerts. Please ensure permissions have been granted.
 
-Dependadog alerts está habilitado en el repo pero la **GitHub App de Renovate de la org**
+Dependabot alerts está habilitado en el repo pero la **GitHub App de Renovate de la org**
 no tiene el permiso `vulnerability_alerts`. Christian (admin) debe agregarlo en la
 configuración de la app (GitHub → Org settings → GitHub Apps → Renovate → Permissions →
 agregar `vulnerability_alerts: read`).
@@ -22,6 +22,7 @@ Actualizar `requirements.yml` para usar formato Galaxy (sin `src`/`scm`):
 ## molecule-plugins bug
 
 Cuando se publique molecule-plugins#364, eliminar:
+
 - `molecule/default/create.yml`
 - `molecule/proxy/create.yml`
 
