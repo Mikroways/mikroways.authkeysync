@@ -6,9 +6,11 @@
     ':dependencyDashboard',
   ],
   timezone: 'America/Argentina/Buenos_Aires',
-  schedule: [
-    'before 6am on monday',
-  ],
+  // Sin `schedule` a proposito: Renovate corre self-hosted, disparado por el
+  // cron de .github/workflows/renovate.yml, que es la unica fuente de verdad
+  // del horario. Agregar una ventana aca la duplica y puede bloquear la
+  // corrida: el cron dispara domingo ~22:00 local, y una ventana de
+  // 'before 6am on monday' dejaba todo en "Awaiting Schedule" sin crear PRs.
   separateMinorPatch: true,
   prHourlyLimit: 4,
   prConcurrentLimit: 10,
