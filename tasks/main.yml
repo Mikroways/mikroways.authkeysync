@@ -6,8 +6,12 @@
     path: "{{ authkeysync_bin_dir }}"
     state: directory
     mode: "0755"
+  register: authkeysync_bin_dir_result
 
+# In check mode on a host without AuthKeySync the directory above is only
+# simulated, and get_url fails because its destination does not exist.
 - name: Download AuthKeySync binary
+  when: not (ansible_check_mode and authkeysync_bin_dir_result is changed)
   ansible.builtin.get_url:
     url: "{{ authkeysync_download_url }}"
     dest: "{{ authkeysync_bin_path }}"

@@ -19,6 +19,8 @@ scenario:
     - destroy
     - syntax
     - create
+    # --check on a host without AuthKeySync, before anything is installed.
+    - check
     - converge
     - idempotence
     - verify
