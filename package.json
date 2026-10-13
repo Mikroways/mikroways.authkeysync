@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
+    "prelint:docs": "npm install --no-save --no-audit --no-fund --silent @mikroways/docs-quality@latest",
     "lint:docs": "markdownlint-cli2 && cspell \"**/*.md\""
   },
   "devDependencies": {
