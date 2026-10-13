@@ -84,7 +84,7 @@
 # AuthKeySync would write (the binary does not run in check mode).
 - name: Show the keys that strict mode would remove (check mode)
   when:
-    - ansible_check_mode
+    - authkeysync_check_mode
     - authkeysync_keys_to_remove | default([]) | length > 0
   ansible.builtin.lineinfile:
     path: "{{ authkeysync_authorized_keys_path }}"
@@ -98,7 +98,7 @@
 
 - name: Stop before removing keys that are not in any source
   when:
-    - not ansible_check_mode
+    - not authkeysync_check_mode
     - authkeysync_keys_to_remove | default([]) | length > 0
   vars:
     authkeysync_removal_detail: >-

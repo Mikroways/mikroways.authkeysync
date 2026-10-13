@@ -72,6 +72,21 @@
                   - "'ED25519' in ansible_failed_result.msg"
                   - "'SHA256:' in ansible_failed_result.msg"
 
+        # c2. Same when check mode is requested with the check_mode keyword (not --check).
+        - name: Run the role with check_mode on a block
+          check_mode: true
+          block:
+            - name: Include role
+              ansible.builtin.include_role:
+                name: mikroways.authkeysync
+
+        - name: Assert the keyword was detected as check mode
+          ansible.builtin.assert:
+            that:
+              - authkeysync_check_mode
+              - authkeysync_removal_preview is changed
+              - "'stale@test' in authkeysync_removal_preview.results[0].item"
+
         # An unreachable source: say which one, touch nothing.
         - name: Run the role with an unreachable source (must stop)
           block:

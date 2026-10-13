@@ -1,6 +1,18 @@
 # tasks/main.yml
 ---
 # No become: everything is installed under the home of the user running the role.
+# ansible_check_mode is only true with --check on the command line, not with a
+# check_mode: true keyword on a task or block. A command task is skipped in both,
+# so use it to detect check mode however it was requested.
+- name: Detect check mode
+  ansible.builtin.command: "true"
+  register: authkeysync_check_mode_probe
+  changed_when: false
+
+- name: Remember whether this is a check mode run
+  ansible.builtin.set_fact:
+    authkeysync_check_mode: "{{ authkeysync_check_mode_probe is skipped }}"
+
 # First, so that when it stops the role has not changed anything on the host.
 - name: Check that strict mode will not remove unexpected keys
   ansible.builtin.include_tasks: key_removal_check.yml
@@ -18,7 +30,7 @@
 # In check mode on a host without AuthKeySync the directory above is only
 # simulated, and get_url fails because its destination does not exist.
 - name: Download AuthKeySync binary
-  when: not (ansible_check_mode and authkeysync_bin_dir_result is changed)
+  when: not (authkeysync_check_mode and authkeysync_bin_dir_result is changed)
   ansible.builtin.get_url:
     url: "{{ authkeysync_download_url }}"
     dest: "{{ authkeysync_bin_path }}"
