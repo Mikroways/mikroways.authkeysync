@@ -20,13 +20,12 @@ fi
 
 # El CI usa siempre @latest (mw-docs-quality lint.yml); si el local queda atras,
 # el diccionario de cspell difiere y el job docs falla aunque el hook pase.
-# --allow-remote: npm >= 12 rechaza el tarball que publica el registro de GitLab.
 # Si no hay red, se avisa y se sigue con la version instalada.
 latest=$(npm view @mikroways/docs-quality version 2>/dev/null)
 current=$(node -p "require('./node_modules/@mikroways/docs-quality/package.json').version" 2>/dev/null)
 if [ -n "$latest" ] && [ "$latest" != "$current" ]; then
   echo "pre-commit: actualizando docs-quality $current -> $latest..."
-  npm install --no-save --allow-remote=all --no-audit --no-fund --silent \
+  npm install --no-save --no-audit --no-fund --silent \
     @mikroways/docs-quality@latest ||
     echo "pre-commit: no se pudo actualizar docs-quality, sigo con $current." >&2
 fi
