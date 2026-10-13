@@ -1,0 +1,123 @@
+---
+# Strict-mode key removal control. Every case runs the role itself (not the binary).
+- name: Converge
+  hosts: all
+  become: false
+  gather_facts: true
+  vars:
+    home: "{{ ansible_facts['env']['HOME'] }}"
+    ak: "{{ ansible_facts['env']['HOME'] }}/.ssh/authorized_keys"
+    stale_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDx5/coTRWTAsqTAhL5xLWb75ZnSA2mN8i5ROQ9KXBTY stale@test\n"
+  tasks:
+    - name: Snapshot authorized_keys
+      ansible.builtin.stat:
+        path: "{{ ak }}"
+      register: ak_before
+
+    # a. A key missing from the sources stops the role and nothing changes.
+    - name: Run the role (must stop)
+      block:
+        - name: Include role
+          ansible.builtin.include_role:
+            name: mikroways.authkeysync
+        - name: Fail if the role did not stop
+          ansible.builtin.fail:
+            msg: "the role should have stopped"
+      rescue:
+        - name: Assert the stale key is listed
+          ansible.builtin.assert:
+            that:
+              - "'Strict mode would remove 1 key(s)' in ansible_failed_result.msg"
+              - "'stale@test' in ansible_failed_result.msg"
+              - "'ED25519' in ansible_failed_result.msg"
+              - "'SHA256:' in ansible_failed_result.msg"
+
+    # c. The same in --check mode.
+    - name: Run the role in check mode (must stop too)
+      check_mode: true
+      block:
+        - name: Include role in check mode
+          ansible.builtin.include_role:
+            name: mikroways.authkeysync
+        - name: Fail if the role did not stop
+          ansible.builtin.fail:
+            msg: "the role should have stopped in check mode"
+      rescue:
+        - name: Assert the stale key is listed in check mode
+          ansible.builtin.assert:
+            that: "'stale@test' in ansible_failed_result.msg"
+
+    # An unreachable source: say which one, touch nothing.
+    - name: Run the role with an unreachable source (must stop)
+      block:
+        - name: Include role
+          ansible.builtin.include_role:
+            name: mikroways.authkeysync
+          vars:
+            authkeysync_sources:
+              - url: "http://127.0.0.1:9/keys.pub"
+        - name: Fail if the role did not stop
+          ansible.builtin.fail:
+            msg: "the role should have stopped"
+      rescue:
+        - name: Assert the failing source is named
+          ansible.builtin.assert:
+            that:
+              - "'http://127.0.0.1:9/keys.pub' in ansible_failed_result.msg"
+              - "'Nothing was changed' in ansible_failed_result.msg"
+
+    - name: Check what the stopped runs left behind
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ ak }}"
+        - "{{ home }}/.config/authkeysync/config.yaml"
+        - "{{ home }}/.local/bin/authkeysync"
+      register: after_stop
+
+    - name: Read the crontab
+      ansible.builtin.command: crontab -l
+      register: crontab_after_stop
+      changed_when: false
+      failed_when: false
+
+    - name: Assert nothing was changed (authorized_keys, config, binary, cron)
+      ansible.builtin.assert:
+        that:
+          - after_stop.results[0].stat.checksum == ak_before.stat.checksum
+          - not after_stop.results[1].stat.exists
+          - not after_stop.results[2].stat.exists
+          - "'AuthKeySync' not in crontab_after_stop.stdout"
+
+    # b. With the removal accepted the role goes on and removes the key.
+    # d. That run changes authorized_keys; the next one does not.
+    - name: Run the role accepting the removal
+      ansible.builtin.include_role:
+        name: mikroways.authkeysync
+      vars:
+        authkeysync_allow_key_removal: true
+
+    - name: Assert the first run reported changed
+      ansible.builtin.assert:
+        that: authkeysync_initial_sync is changed
+
+    - name: Read authorized_keys
+      ansible.builtin.slurp:
+        src: "{{ ak }}"
+      register: ak_after
+
+    - name: Assert the stale key is gone and the sources were applied
+      ansible.builtin.assert:
+        that:
+          - "'stale@test' not in (ak_after.content | b64decode)"
+          - (ak_after.content | b64decode | length) > 0
+
+    - name: Run the role again
+      ansible.builtin.include_role:
+        name: mikroways.authkeysync
+      vars:
+        authkeysync_allow_key_removal: true
+
+    - name: Assert the second run reported ok
+      ansible.builtin.assert:
+        that: authkeysync_initial_sync is not changed

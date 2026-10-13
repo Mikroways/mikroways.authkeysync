@@ -1,0 +1,18 @@
+---
+- name: Prepare
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: Create .ssh directory
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env']['HOME'] }}/.ssh"
+        state: directory
+        mode: "0700"
+
+    # A valid key that is not published in any source.
+    - name: Plant a key that is not in any source
+      ansible.builtin.copy:
+        dest: "{{ ansible_facts['env']['HOME'] }}/.ssh/authorized_keys"
+        content: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDx5/coTRWTAsqTAhL5xLWb75ZnSA2mN8i5ROQ9KXBTY stale@test\n"
+        mode: "0600"
