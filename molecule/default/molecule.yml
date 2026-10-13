@@ -8,6 +8,10 @@ platforms:
     image: ubuntu:24.04
 provisioner:
   name: ansible
+  env:
+    # Resolver el rol desde el repo (el directorio padre del rol, que se llama
+    # mikroways.authkeysync) y no desde una copia en ~/.ansible/roles.
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
   inventory:
     group_vars:
       all:
