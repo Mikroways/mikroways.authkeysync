@@ -78,8 +78,28 @@
   check_mode: false
   when: authkeysync_keys_to_remove | default([]) | length > 0
 
+# In check mode do not stop: show the removal as a pending change (with --diff, the
+# authorized_keys diff) and let the rest of the run go on. It only previews what
+# would be removed, not what would be added, and it is not the exact file
+# AuthKeySync would write (the binary does not run in check mode).
+- name: Show the keys that strict mode would remove (check mode)
+  when:
+    - ansible_check_mode
+    - authkeysync_keys_to_remove | default([]) | length > 0
+  ansible.builtin.lineinfile:
+    path: "{{ authkeysync_authorized_keys_path }}"
+    regexp: >-
+      ^.*{{ item | regex_search(authkeysync_key_regex, '\1') | first | regex_escape }}.*$
+    state: absent
+  register: authkeysync_removal_preview
+  loop: "{{ authkeysync_keys_to_remove }}"
+  loop_control:
+    label: "{{ item | truncate(60) }}"
+
 - name: Stop before removing keys that are not in any source
-  when: authkeysync_keys_to_remove | default([]) | length > 0
+  when:
+    - not ansible_check_mode
+    - authkeysync_keys_to_remove | default([]) | length > 0
   vars:
     authkeysync_removal_detail: >-
       {{ authkeysync_removal_fingerprints.stdout_lines

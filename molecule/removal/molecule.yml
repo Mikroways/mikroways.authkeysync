@@ -15,12 +15,14 @@ provisioner:
 verifier:
   name: ansible
 scenario:
-  # Everything is asserted in converge.yml (it runs the role several times, so it
-  # is not idempotent by design and has no idempotence step).
+  # Everything is asserted in converge.yml: its first play under `check` (--check),
+  # the second under `converge`. It runs the role several times, so it is not
+  # idempotent by design and has no idempotence step.
   test_sequence:
     - destroy
     - syntax
     - create
     - prepare
+    - check
     - converge
     - destroy

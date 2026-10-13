@@ -60,6 +60,13 @@ El control necesita alcanzar las fuentes durante el `ansible-playbook` (usa las
 variables de proxy) y `ssh-keygen` para mostrar las huellas. Si
 `authorized_keys` todavía no existe, no hay nada que comparar.
 
+En `--check` el control **no frena**: muestra las claves que se borrarían como
+un cambio pendiente (con `--diff`, el diff de `authorized_keys`) y la corrida
+sigue con el resto. Tiene dos límites: solo muestra lo que se borraría, no lo
+que se agrega desde las fuentes, y no es el archivo exacto que escribiría
+AuthKeySync, porque el binario no corre en modo prueba. Sin `--check` frena como
+se describió.
+
 El control corre **solo cuando se ejecuta el playbook**. El cron no pasa por él:
 sigue sincronizando en modo estricto sin frenar, así que un offboarding (sacar a
 alguien de `ssh_keys`) se aplica solo en cada host dentro de los
