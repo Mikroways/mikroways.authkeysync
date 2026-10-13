@@ -44,6 +44,7 @@
   vars:
     home: "{{ ansible_facts['env']['HOME'] }}"
     ak: "{{ ansible_facts['env']['HOME'] }}/.ssh/authorized_keys"
+    source_url: "https://mikroways.gitlab.io/public/ssh_keys/_all.pub"
     stale_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDx5/coTRWTAsqTAhL5xLWb75ZnSA2mN8i5ROQ9KXBTY stale@test\n"
   tasks:
     - name: Cases that change the host (skipped under --check)
@@ -128,6 +129,76 @@
               - not after_stop.results[1].stat.exists
               - not after_stop.results[2].stat.exists
               - "'AuthKeySync' not in crontab_after_stop.stdout"
+
+        # Keys with options (from="...", command="...") are compared by their key
+        # blob: the one that is in the source is kept out of the list, the other is not.
+        - name: Fetch the source to take a real key from it
+          ansible.builtin.uri:
+            url: "{{ source_url }}"
+            return_content: true
+          register: source_fetch
+
+        - name: Plant two keys with options, one of them in the source
+          ansible.builtin.copy:
+            dest: "{{ ak }}"
+            content: |
+              from="10.0.0.1",no-pty {{ source_fetch.content.splitlines() | select('match', '^(ssh-|ecdsa-|sk-)') | first }}
+              command="/bin/true",no-pty {{ stale_key }}
+            mode: "0600"
+
+        - name: Run the role with keys that have options (must stop)
+          block:
+            - name: Include role
+              ansible.builtin.include_role:
+                name: mikroways.authkeysync
+              vars:
+                authkeysync_sources:
+                  - url: "{{ source_url }}"
+            - name: Fail if the role did not stop
+              ansible.builtin.fail:
+                msg: "the role should have stopped"
+          rescue:
+            - name: Assert only the key that is not in the source is listed
+              ansible.builtin.assert:
+                that:
+                  - "'Strict mode would remove 1 key(s)' in ansible_failed_result.msg"
+                  - "'stale@test' in ansible_failed_result.msg"
+
+        # Without ssh-keygen the keys are still listed, as raw lines with the comment.
+        - name: Restore the original authorized_keys
+          ansible.builtin.copy:
+            dest: "{{ ak }}"
+            content: "{{ stale_key }}"
+            mode: "0600"
+
+        - name: Run the role without ssh-keygen (must stop and list the key)
+          block:
+            - name: Move ssh-keygen out of the way
+              become: true
+              ansible.builtin.command: mv /usr/bin/ssh-keygen /usr/bin/ssh-keygen.off
+              changed_when: true
+            - name: Include role
+              ansible.builtin.include_role:
+                name: mikroways.authkeysync
+              vars:
+                authkeysync_sources:
+                  - url: "{{ source_url }}"
+            - name: Fail if the role did not stop
+              ansible.builtin.fail:
+                msg: "the role should have stopped"
+          rescue:
+            - name: Assert the key is listed as a raw line
+              ansible.builtin.assert:
+                that:
+                  - "'Strict mode would remove 1 key(s)' in ansible_failed_result.msg"
+                  - "'stale@test' in ansible_failed_result.msg"
+                  - "'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...' in ansible_failed_result.msg"
+                  - "'SHA256:' not in ansible_failed_result.msg"
+          always:
+            - name: Put ssh-keygen back
+              become: true
+              ansible.builtin.command: mv /usr/bin/ssh-keygen.off /usr/bin/ssh-keygen
+              changed_when: true
 
         # b. With the removal accepted the role goes on and removes the key.
         # d. That run changes authorized_keys; the next one does not.
