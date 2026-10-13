@@ -52,3 +52,11 @@ authkeysync_username: "{{ ansible_facts['user_id'] }}"
 # (e.g. team keys + the client's own keys from another URL).
 authkeysync_sources:
   - url: "{{ authkeysync_mikroways_keys_url }}"
+
+# Safety check for strict mode (preserve_local_keys=false). Before installing the
+# cron, the role compares the current authorized_keys with the sources and stops
+# listing every key that would be deleted (type, comment, fingerprint). To go on:
+#   - add those keys to authkeysync_sources, or
+#   - use authkeysync_preserve_local_keys: true for a while, or
+#   - accept the removal explicitly with -e authkeysync_allow_key_removal=true.
+authkeysync_allow_key_removal: false

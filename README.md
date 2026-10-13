@@ -44,6 +44,44 @@ Mikroways y su clave se quita del repositorio de claves, también se elimina del
 > Si se necesita preservar claves agregadas manualmente, poner
 > `authkeysync_preserve_local_keys: true`.
 
+### Control previo a la eliminación
+
+En modo estricto, antes de tocar nada en el host, el rol compara
+el `authorized_keys` actual con las fuentes. Si alguna clave se va a borrar,
+**frena** sin cambiar nada y lista cada una (tipo, huella y comentario). Las
+salidas son:
+
+- agregar esas claves como fuente (`authkeysync_sources`);
+- correr con `authkeysync_preserve_local_keys: true` por un tiempo;
+- aceptar explícitamente la eliminación:
+  `-e authkeysync_allow_key_removal=true`.
+
+El control necesita alcanzar las fuentes durante el `ansible-playbook` (usa las
+variables de proxy) y `ssh-keygen` para mostrar las huellas. Si
+`authorized_keys` todavía no existe, no hay nada que comparar.
+
+En modo prueba (`--check`, o `check_mode: true` en una tarea o bloque) el control **no frena**: muestra las claves que se borrarían como
+un cambio pendiente (con `--diff`, el diff de `authorized_keys`) y la corrida
+sigue con el resto. Tiene dos límites: solo muestra lo que se borraría, no lo
+que se agrega desde las fuentes, y no es el archivo exacto que escribiría
+AuthKeySync, porque el binario no corre en modo prueba. Sin `--check` frena como
+se describió.
+
+El control corre **solo cuando se ejecuta el playbook**. El cron no pasa por él:
+sigue sincronizando en modo estricto sin frenar, así que un offboarding (sacar a
+alguien de `ssh_keys`) se aplica solo en cada host dentro de los
+`authkeysync_cron_minute` minutos, como antes. El control frena únicamente
+cuando, al correr el playbook, quedan claves que el cron todavía no borró:
+
+- la primera aplicación en un host (por ejemplo, la clave con la que se creó la
+  VM con Packer);
+- el paso de `authkeysync_preserve_local_keys` de `true` a `false`;
+- una corrida en los minutos entre que se saca una clave de la fuente y que pasa
+  el cron.
+
+El playbook reporta `changed` cuando la sincronización modifica
+`authorized_keys`.
+
 ## Variables
 
 | Variable | Default | Descripción |
@@ -55,6 +93,7 @@ Mikroways y su clave se quita del repositorio de claves, también se elimina del
 | `authkeysync_backup_enabled` | `true` | Crear backup antes de modificar `authorized_keys`. |
 | `authkeysync_backup_retention_count` | `10` | Cantidad de backups a conservar. |
 | `authkeysync_preserve_local_keys` | `false` | `false` = estricto (elimina claves ausentes en la fuente). |
+| `authkeysync_allow_key_removal` | `false` | Permite que el modo estricto elimine claves ausentes en las fuentes sin frenar el rol (ver [Control previo](#control-previo-a-la-eliminación)). |
 | `authkeysync_cron_minute` | `*/5` | Frecuencia del cron de sincronización. |
 | `authkeysync_run_initial_sync` | `true` | Correr una sincronización inicial al aplicar el rol. |
 | `authkeysync_http_proxy` | `""` | Proxy HTTP para descargar el binario y para el cron de sincronización. Vacío = sin proxy. |

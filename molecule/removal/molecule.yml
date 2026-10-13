@@ -1,0 +1,32 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: authkeysync-removal
+    image: ubuntu:24.04
+provisioner:
+  name: ansible
+  env:
+    # Resolver el rol desde el repo (el directorio padre del rol, que se llama
+    # mikroways.authkeysync) y no desde una copia en ~/.ansible/roles.
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
+  inventory:
+    group_vars:
+      all:
+        ansible_user: ansible
+verifier:
+  name: ansible
+scenario:
+  # Everything is asserted in converge.yml: its first play under `check` (--check),
+  # the second under `converge`. It runs the role several times, so it is not
+  # idempotent by design and has no idempotence step.
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - check
+    - converge
+    - destroy

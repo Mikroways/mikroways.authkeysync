@@ -4,3 +4,4 @@ molecule/default/roles/
 examples/vagrant/.galaxy-roles/
 node_modules/
 package-lock.json
+.ansible/

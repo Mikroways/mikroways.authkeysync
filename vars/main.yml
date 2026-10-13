@@ -1,0 +1,21 @@
+# vars/main.yml
+---
+# Internal (not meant to be overridden).
+authkeysync_authorized_keys_path: "{{ authkeysync_ssh_dir }}/authorized_keys"
+
+# Newline for Jinja expressions (a '\n' literal inside them is not unescaped).
+authkeysync_nl: "\n"
+
+# Runs a sync and prints a marker only when authorized_keys changed, so the
+# tasks that run it can report `changed` accurately. Comment lines are ignored:
+# AuthKeySync rewrites its "# Last sync: <time>" header on every run.
+authkeysync_sync_script: |
+  set -e
+  ak={{ authkeysync_authorized_keys_path | quote }}
+  before=$(grep -v '^[[:space:]]*#' "$ak" 2>/dev/null | cksum || true)
+  {{ authkeysync_bin_path | quote }} --config {{ authkeysync_config_path | quote }} --quiet
+  after=$(grep -v '^[[:space:]]*#' "$ak" 2>/dev/null | cksum || true)
+  [ "$before" = "$after" ] || echo AUTHKEYSYNC_CHANGED
+
+# Matches the key blob of an authorized_keys line (options may precede the type).
+authkeysync_key_regex: '^(?:.*?\s)?(?:ssh-|ecdsa-|sk-)\S*\s+([A-Za-z0-9+/=]+)'

@@ -88,7 +88,7 @@ FROM_GALAXY=1 vagrant up
 ```
 
 En ese modo Vagrant ejecuta `ansible-galaxy install` desde `../requirements.yml`
-(pinneado a la versión `0.2.1`), instala el rol en `.galaxy-roles/` (gitignoreado) y
+(pineado a la versión `0.2.1`), instala el rol en `.galaxy-roles/` (gitignoreado) y
 provisiona con esa versión en lugar del código local. Requiere acceso a Ansible Galaxy.
 
 > **Nota:** al provisionar, Vagrant pasa `--inventory-file` a `ansible-playbook` en lugar del
