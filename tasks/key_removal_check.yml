@@ -1,0 +1,98 @@
+# tasks/key_removal_check.yml
+---
+# Strict mode deletes every local key missing from the sources. Stop before that
+# happens unless the removal was explicitly allowed. Read-only: runs in check mode.
+- name: Check current authorized_keys
+  ansible.builtin.slurp:
+    src: "{{ authkeysync_authorized_keys_path }}"
+  register: authkeysync_current_keys
+  failed_when: false
+  check_mode: false
+
+- name: Fetch key sources to compare
+  ansible.builtin.uri:
+    url: "{{ item.url }}"
+    method: "{{ item.method | default('GET') }}"
+    timeout: "{{ item.timeout_seconds | default(30) }}"
+    return_content: true
+  loop: "{{ authkeysync_sources }}"
+  loop_control:
+    label: "{{ item.url }}"
+  register: authkeysync_fetched_sources
+  failed_when: false
+  when: authkeysync_current_keys.content is defined
+  check_mode: false
+  environment:
+    http_proxy: "{{ authkeysync_http_proxy }}"
+    https_proxy: "{{ authkeysync_https_proxy }}"
+    no_proxy: "{{ authkeysync_no_proxy }}"
+
+- name: Stop if a key source could not be downloaded
+  when:
+    - authkeysync_current_keys.content is defined
+    - authkeysync_unreachable_sources | length > 0
+  vars:
+    authkeysync_unreachable_sources: >-
+      {{ authkeysync_fetched_sources.results
+      | rejectattr('status', 'defined') | list
+      + authkeysync_fetched_sources.results
+      | selectattr('status', 'defined') | rejectattr('status', 'equalto', 200) | list }}
+  ansible.builtin.fail:
+    msg: |-
+      Could not download {{ authkeysync_unreachable_sources | length }} key source(s), so the keys that strict mode would remove cannot be determined:
+      {% for r in authkeysync_unreachable_sources %}
+        - {{ r.item.url }} ({{ r.msg | default('HTTP ' ~ r.status) }})
+      {% endfor %}
+
+      Nothing was changed.
+
+- name: Work out which keys would be removed
+  when: authkeysync_current_keys.content is defined
+  vars:
+    authkeysync_source_lines: >-
+      {{ (authkeysync_fetched_sources.results | map(attribute='content')
+      | join(authkeysync_nl)).splitlines() }}
+    authkeysync_current_lines: >-
+      {{ (authkeysync_current_keys.content | b64decode).splitlines() }}
+    authkeysync_removal_json: >-
+      {% set ns = namespace(source=[], remove=[]) %}
+      {% for line in authkeysync_source_lines if not line is match('^\\s*(#|$)') %}
+      {% set ns.source = ns.source + [line | regex_search(authkeysync_key_regex, '\\1')] %}
+      {% endfor %}
+      {% for line in authkeysync_current_lines if not line is match('^\\s*(#|$)') %}
+      {% if (line | regex_search(authkeysync_key_regex, '\\1')) not in ns.source %}
+      {% set ns.remove = ns.remove + [line] %}
+      {% endif %}
+      {% endfor %}
+      {{ ns.remove | to_json }}
+  ansible.builtin.set_fact:
+    authkeysync_keys_to_remove: "{{ authkeysync_removal_json | trim | from_json }}"
+
+- name: Describe the keys that would be removed
+  ansible.builtin.command: ssh-keygen -l -f -
+  args:
+    stdin: "{{ authkeysync_keys_to_remove | join(authkeysync_nl) }}"
+  register: authkeysync_removal_fingerprints
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: authkeysync_keys_to_remove | default([]) | length > 0
+
+- name: Stop before removing keys that are not in any source
+  when: authkeysync_keys_to_remove | default([]) | length > 0
+  vars:
+    authkeysync_removal_detail: >-
+      {{ authkeysync_removal_fingerprints.stdout_lines
+      | map('regex_replace', '^\d+ (\S+) (.*) \((\S+)\)$', '  - \3  \1  \2')
+      | list
+      if authkeysync_removal_fingerprints.rc == 0
+      else authkeysync_keys_to_remove | map('truncate', 80) | map('regex_replace', '^', '  - ') | list }}
+  ansible.builtin.fail:
+    msg: |-
+      Strict mode would remove {{ authkeysync_keys_to_remove | length }} key(s) from {{ authkeysync_authorized_keys_path }} that are not in any source (type, fingerprint, comment):
+      {{ authkeysync_removal_detail | join(authkeysync_nl) }}
+
+      Nothing was changed. To continue, either:
+        - add those keys as a source (authkeysync_sources),
+        - run with authkeysync_preserve_local_keys: true for a while, or
+        - accept the removal: -e authkeysync_allow_key_removal=true

@@ -3,6 +3,7 @@ globs:
 ignores:
   - "node_modules/**"
   - ".venv/**"
+  - ".ansible/**"
   - ".vagrant/**"
   - "examples/vagrant/roles/**"
   - "examples/vagrant/.galaxy-roles/**"
