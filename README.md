@@ -108,6 +108,20 @@ Las variables de proxy cubren dos momentos: la descarga del binario durante el
 `ansible-playbook` y las sincronizaciones del cron en runtime (las variables
 quedan inyectadas en el crontab del usuario).
 
+### Redes que bloquean `gitlab.io`
+
+Algunas redes de clientes bloquean `mikroways.gitlab.io` (por ejemplo, la red de
+producción de Banco Columbia). El mismo sitio de Pages responde en
+`https://ssh-keys.mikroways.net`, con el mismo contenido y sin el prefijo
+`/public/ssh_keys` en la ruta. En esos hosts, cambiá la variable en el inventario:
+
+```yaml
+authkeysync_mikroways_keys_url: "https://ssh-keys.mikroways.net/_all.pub"
+```
+
+Si definís `authkeysync_sources` a mano, la variable no se usa: poné la URL
+directamente en la fuente.
+
 ### Estructura de `authkeysync_sources`
 
 ```yaml
